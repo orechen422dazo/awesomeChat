@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket Chat</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="chat-box"></div>
-<label for="username"></label><input type="text" id="username" placeholder="Username">
-<label for="message"></label><input type="text" id="message" placeholder="Message">
-<button onclick="sendMessage()">Send</button>
+<div id="chat-container">
+    <div id="chat-box"></div>
+    <div id="input-area">
+        <label for="username"></label><input type="text" id="username" placeholder="名前を入力">
+        <label for="message"></label><input type="text" id="message" placeholder="投稿するメッセージ">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
 
 <script>
     const chatBox = document.getElementById('chat-box');
@@ -17,11 +22,20 @@
     const messageInput = document.getElementById('message');
     const ws = new WebSocket('ws://localhost:8080/ws');
 
+    let messageCount = 0;
+
     ws.onmessage = function(event) {
         const message = JSON.parse(event.data);
         const messageElement = document.createElement('div');
-        messageElement.textContent = `${message.username}: ${message.message}`;
+        messageElement.className = `message ${messageCount % 2 === 0 ? 'left' : 'right'}`;
+        messageElement.innerHTML = `
+                <div class="message-content">
+                    <strong>${message.username}:</strong> ${message.message}
+                </div>
+            `;
         chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        messageCount++;
     };
 
     function sendMessage() {
@@ -32,6 +46,12 @@
             messageInput.value = '';
         }
     }
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
 </script>
 </body>
 </html>
